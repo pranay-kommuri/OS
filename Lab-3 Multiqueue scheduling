@@ -1,0 +1,171 @@
+#include <stdio.h>
+#define MAX 10
+
+void roundRobin(int n, int AT[], int BT[], int CT[], int TAT[], int WT[], int RT[], int timeQuantum) {
+    int remainingBT[MAX];
+    for (int i = 0; i < n; i++) {
+        remainingBT[i] = BT[i]; // Initialize remaining burst times
+    }
+    
+    int time = 0, completed = 0;
+    while (completed < n) {
+        int progressMade = 0;
+        for (int i = 0; i < n; i++) {
+            if (remainingBT[i] > 0) {
+                progressMade = 1;
+                if (remainingBT[i] <= timeQuantum) {
+                    time += remainingBT[i];
+                    CT[i] = time;
+                    TAT[i] = CT[i] - AT[i];
+                    WT[i] = TAT[i] - BT[i];
+                    RT[i] = CT[i] - AT[i] - BT[i];
+                    remainingBT[i] = 0;
+                    completed++;
+                } else {
+                    remainingBT[i] -= timeQuantum;
+                    time += timeQuantum;
+                }
+            }
+        }
+        if (progressMade == 0) break;
+    }
+}
+
+void FCFS(int n, int AT[], int BT[], int CT[], int TAT[], int WT[], int RT[]) {
+    int time = 0;
+    for (int i = 0; i < n; i++) {
+        if (i == 0) {
+            time = AT[i];
+        }
+        if (AT[i] > time) {
+            time = AT[i];
+        }
+        time += BT[i];
+        CT[i] = time;
+        TAT[i] = CT[i] - AT[i];
+        WT[i] = TAT[i] - BT[i];
+        RT[i] = CT[i] - AT[i] - BT[i];
+    }
+}
+
+void main() {
+    int n;
+    int AT[MAX], BT[MAX], CT[MAX], TAT[MAX], WT[MAX], RT[MAX], priority[MAX], order[MAX];
+    int i, j, timeQuantum;
+    float avgTAT = 0, avgWT = 0, avgRT = 0;
+
+    // Input number of processes
+    printf("Enter the number of processes (max 10): ");
+    scanf("%d", &n);
+    if (n > MAX) {
+        printf("The maximum number of processes is 10. Exiting.\n");
+        return;
+    }
+
+    // Input Arrival Times (AT) and Burst Times (BT) for each process
+    printf("Enter the Arrival Times (AT) for each process:\n");
+    for (i = 0; i < n; i++) {
+        printf("AT[%d]: ", i + 1);
+        scanf("%d", &AT[i]);
+    }
+
+    printf("Enter the Burst Times (BT) for each process:\n");
+    for (i = 0; i < n; i++) {
+        printf("BT[%d]: ", i + 1);
+        scanf("%d", &BT[i]);
+    }
+
+    // Input priorities for each process
+    printf("Enter the priority for each process (lower number indicates higher priority):\n");
+    for (i = 0; i < n; i++) {
+        printf("Priority[%d]: ", i + 1);
+        scanf("%d", &priority[i]);
+        order[i] = i; // Store the order for later sorting
+    }
+
+    // Input time quantum for Round-Robin scheduling
+    printf("Enter the time quantum for Round Robin scheduling: ");
+    scanf("%d", &timeQuantum);
+
+    // Sort processes by Arrival Time (AT) and then by Priority
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (AT[i] > AT[j] || (AT[i] == AT[j] && priority[i] > priority[j])) {
+                int temp = AT[i]; AT[i] = AT[j]; AT[j] = temp;
+                temp = BT[i]; BT[i] = BT[j]; BT[j] = temp;
+                temp = priority[i]; priority[i] = priority[j]; priority[j] = temp;
+                temp = order[i]; order[i] = order[j]; order[j] = temp;
+            }
+        }
+    }
+
+    // Separate processes into two queues based on priority
+    int highPriorityCount = 0;
+    for (i = 0; i < n; i++) {
+        if (priority[i] == 1) { // Assuming 1 is high priority
+            highPriorityCount++;
+        }
+    }
+
+    // Create two queues: High priority (RR) and Low priority (FCFS)
+    int AT_High[MAX], BT_High[MAX], AT_Low[MAX], BT_Low[MAX];
+    int highIndex = 0, lowIndex = 0;
+
+    for (i = 0; i < n; i++) {
+        if (priority[i] == 1) {
+            AT_High[highIndex] = AT[i];
+            BT_High[highIndex] = BT[i];
+            highIndex++;
+        } else {
+            AT_Low[lowIndex] = AT[i];
+            BT_Low[lowIndex] = BT[i];
+            lowIndex++;
+        }
+    }
+
+    // Run Round-Robin for high priority queue
+    roundRobin(highPriorityCount, AT_High, BT_High, CT, TAT, WT, RT, timeQuantum);
+
+    // Run FCFS for low priority queue
+    FCFS(n - highPriorityCount, AT_Low, BT_Low, CT + highPriorityCount, TAT + highPriorityCount, WT + highPriorityCount, RT + highPriorityCount);
+
+    // Calculate averages
+    for (i = 0; i < n; i++) {
+        avgTAT += TAT[i];
+        avgWT += WT[i];
+        avgRT += RT[i];
+    }
+    avgTAT /= n;
+    avgWT /= n;
+    avgRT /= n;
+
+    // Sort the results back by process number for output
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (order[i] > order[j]) {
+                int temp = AT[i]; AT[i] = AT[j]; AT[j] = temp;
+                temp = BT[i]; BT[i] = BT[j]; BT[j] = temp;
+                temp = CT[i]; CT[i] = CT[j]; CT[j] = temp;
+                temp = TAT[i]; TAT[i] = TAT[j]; TAT[j] = temp;
+                temp = WT[i]; WT[i] = WT[j]; WT[j] = temp;
+                temp = RT[i]; RT[i] = RT[j]; RT[j] = temp;
+                temp = order[i]; order[i] = order[j]; order[j] = temp;
+            }
+        }
+    }
+
+    // Output the results
+    printf("\n+-----------+------+------+------+-------+------+------+\n");
+    printf("| Process | AT | BT | CT | TAT | WT | RT |\n");
+    printf("+-----------+------+------+------+-------+------+------+\n");
+    for (i = 0; i < n; i++) {
+        int t = order[i];
+        printf("| P%d\t\t|%6d|%6d|%6d|%7d|%6d|%6d|\n", t + 1, AT[t], BT[t], CT[t], TAT[t], WT[t], RT[t]);
+    }
+    printf("+-----------+------+------+------+-------+------+------+\n");
+
+    // Print averages
+    printf("\nAverage Turnaround Time (TAT): %.2f\n", avgTAT);
+    printf("Average Waiting Time (WT): %.2f\n", avgWT);
+    printf("Average Response Time (RT): %.2f\n", avgRT);
+}
