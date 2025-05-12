@@ -139,3 +139,40 @@ void main() {
     printf("Average Waiting Time (WT): %.2f\n", avgWT);
     printf("Average Response Time (RT): %.2f\n", avgRT);
 }
+
+/*
+* OUTPUT:
+* Enter the number of processes (max 10): 5
+* Enter the Arrival Times (AT) for each process:
+* AT[1]: 0
+* AT[2]: 0
+* AT[3]: 0
+* AT[4]: 0
+* AT[5]: 0
+* Enter the Burst Times (BT) for each process:
+* BT[1]: 10
+* BT[2]: 1
+* BT[3]: 2
+* BT[4]: 1
+* BT[5]: 5
+* Enter the priority for each process (lower number indicates higher priority):
+* Priority[1]: 3
+* Priority[2]: 1
+* Priority[3]: 3
+* Priority[4]: 4
+* Priority[5]: 2
+* 
+* +-----------+------+------+------+-------+------+------+
+* |  Process  |  AT  |  BT  |  CT  |  TAT  |  WT  |  RT  |
+* +-----------+------+------+------+-------+------+------+
+* |  P1		|     0|    10|    18|     18|     8|     8|
+* |  P2		|     0|     1|     1|      1|     0|     0|
+* |  P3		|     0|     2|     8|      8|     6|     6|
+* |  P4		|     0|     1|    19|     19|    18|    18|
+* |  P5		|     0|     5|     6|      6|     1|     1|
+* +-----------+------+------+------+-------+------+------+
+* 
+* Average Turnaround Time (TAT): 10.40
+* Average Waiting Time (WT): 6.60
+* Average Response Time (RT): 6.60
+*/
